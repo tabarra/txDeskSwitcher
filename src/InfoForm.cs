@@ -41,7 +41,7 @@ namespace src
             {
                 throw new Exception("Could not get type from CLSID");
             }
-            DesktopManager = (IVirtualDesktopManagerInternal)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, Guids.IID_IVirtualDesktopManagerInternal);
+            DesktopManager = (IVirtualDesktopManagerInternal)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, typeof(IVirtualDesktopManagerInternal).GUID);
 
 
             //Registering hotkeys
@@ -104,11 +104,11 @@ namespace src
             // Get desktop
             IObjectArray allDesktops;
             DesktopManager.GetDesktops(out allDesktops);
-            IVirtualDesktop targetDesktop;
-            allDesktops.GetAt(desktopNumber, Guids.IID_IVirtualDesktop, out targetDesktop);
+            object targetDesktop;
+            allDesktops.GetAt(desktopNumber, typeof(IVirtualDesktop).GUID, out targetDesktop);
 
             // Switch to desktop
-            DesktopManager.SwitchDesktop(targetDesktop);
+            DesktopManager.SwitchDesktop(targetDesktop as IVirtualDesktop);
 
             // Release COM objects
             Marshal.ReleaseComObject(allDesktops);
