@@ -12,7 +12,7 @@ namespace src
 
         // Boolean true = user has numpad, false = no numpad
 
-        bool userHasNumpad = false; // No numpad (testing for myself)
+        bool userHasNumpad = true; // Bool.. well names says it all.
 
         //Imports
         [System.Runtime.InteropServices.DllImport("user32.dll")]
