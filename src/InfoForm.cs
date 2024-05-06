@@ -4,21 +4,28 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using src.Classes;
 
+
 namespace src
 {
     public partial class InfoForm : Form
     {
+
+        // Boolean true = user has numpad, false = no numpad
+
+        bool userHasNumpad = false; // No numpad (testing for myself)
+
         //Imports
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
+
+
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         private IVirtualDesktopManagerInternal DesktopManager;
 
-
-
+    
         //Constants
         enum KeyModifier
         {
@@ -32,6 +39,8 @@ namespace src
 
         static readonly int WM_HOTKEY = 0x312;
 
+
+
         public InfoForm()
         {
             InitializeComponent();
@@ -43,19 +52,31 @@ namespace src
             }
             DesktopManager = (IVirtualDesktopManagerInternal)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, Guids.IID_IVirtualDesktopManagerInternal);
 
+            int hotkeyModifiers = (int)KeyModifier.Control | (int)KeyModifier.WinKey;
 
             //Registering hotkeys
-            int hotkeyMoidifiers = (int)(KeyModifier.Control) | (int)(KeyModifier.WinKey);
-            RegisterHotKey(this.Handle, 0, hotkeyMoidifiers, Keys.NumPad0.GetHashCode());
-            RegisterHotKey(this.Handle, 1, hotkeyMoidifiers, Keys.NumPad1.GetHashCode());
-            RegisterHotKey(this.Handle, 2, hotkeyMoidifiers, Keys.NumPad2.GetHashCode());
-            RegisterHotKey(this.Handle, 3, hotkeyMoidifiers, Keys.NumPad3.GetHashCode());
-            RegisterHotKey(this.Handle, 4, hotkeyMoidifiers, Keys.NumPad4.GetHashCode());
-            RegisterHotKey(this.Handle, 5, hotkeyMoidifiers, Keys.NumPad5.GetHashCode());
-            RegisterHotKey(this.Handle, 6, hotkeyMoidifiers, Keys.NumPad6.GetHashCode());
-            RegisterHotKey(this.Handle, 7, hotkeyMoidifiers, Keys.NumPad7.GetHashCode());
-            RegisterHotKey(this.Handle, 8, hotkeyMoidifiers, Keys.NumPad8.GetHashCode());
-            RegisterHotKey(this.Handle, 9, hotkeyMoidifiers, Keys.NumPad9.GetHashCode());
+            if (userHasNumpad == true) {
+                
+                RegisterHotKey(this.Handle, 0, hotkeyModifiers, Keys.NumPad0.GetHashCode());
+                RegisterHotKey(this.Handle, 1, hotkeyModifiers, Keys.NumPad1.GetHashCode());
+                RegisterHotKey(this.Handle, 2, hotkeyModifiers, Keys.NumPad2.GetHashCode());
+                RegisterHotKey(this.Handle, 3, hotkeyModifiers, Keys.NumPad3.GetHashCode());
+                RegisterHotKey(this.Handle, 4, hotkeyModifiers, Keys.NumPad4.GetHashCode());
+                RegisterHotKey(this.Handle, 5, hotkeyModifiers, Keys.NumPad5.GetHashCode());
+                RegisterHotKey(this.Handle, 6, hotkeyModifiers, Keys.NumPad6.GetHashCode());
+                RegisterHotKey(this.Handle, 7, hotkeyModifiers, Keys.NumPad7.GetHashCode());
+                RegisterHotKey(this.Handle, 8, hotkeyModifiers, Keys.NumPad8.GetHashCode());
+            }else{
+                RegisterHotKey(this.Handle, 0, hotkeyModifiers, Keys.Escape.GetHashCode());
+                RegisterHotKey(this.Handle, 1, hotkeyModifiers, Keys.F1.GetHashCode());
+                RegisterHotKey(this.Handle, 2, hotkeyModifiers, Keys.F2.GetHashCode());
+                RegisterHotKey(this.Handle, 3, hotkeyModifiers, Keys.F3.GetHashCode());
+                RegisterHotKey(this.Handle, 4, hotkeyModifiers, Keys.F4.GetHashCode());
+                RegisterHotKey(this.Handle, 5, hotkeyModifiers, Keys.F5.GetHashCode());
+                RegisterHotKey(this.Handle, 6, hotkeyModifiers, Keys.F6.GetHashCode());
+                RegisterHotKey(this.Handle, 7, hotkeyModifiers, Keys.F7.GetHashCode());
+                RegisterHotKey(this.Handle, 8, hotkeyModifiers, Keys.F8.GetHashCode());
+            }
         }
 
 
@@ -75,6 +96,7 @@ namespace src
             {
                 int hotkeyId = m.WParam.ToInt32();
                 GoToDesktop(hotkeyId);
+                Debug.WriteLine(hotkeyId);
             }
             base.WndProc(ref m);
         }
