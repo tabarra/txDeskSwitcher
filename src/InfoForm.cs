@@ -97,7 +97,6 @@ namespace src
         {
             if (dynamicCheckBox.Checked)
             {
-                
                 UnregisterHotKeys();
                 RegisterHotKeysForNonNumpad();
                 Debug.WriteLine(hasNumpad);
@@ -105,7 +104,6 @@ namespace src
             }
             else
             {
-               
                 UnregisterHotKeys();
                 RegisterHotKeysForNumpad();
                 Debug.WriteLine(hasNumpad);
