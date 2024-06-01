@@ -1,4 +1,4 @@
-﻿namespace src
+namespace src
 {
     partial class InfoForm
     {
@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(InfoForm));
             label1 = new Label();
             linkLabel1 = new LinkLabel();
+            this.dynamicCheckBox = new CheckBox();
             tableLayoutPanel1 = new TableLayoutPanel();
             tableLayoutPanel1.SuspendLayout();
             SuspendLayout();
@@ -45,6 +46,22 @@
             label1.TabIndex = 0;
             label1.Text = "Use CTRL+WIN+[0~9] to switch Virtual Desktops";
             label1.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // 
+            // dynamicCheckBox
+            // 
+            dynamicCheckBox.Left = 10;
+            dynamicCheckBox.Top = 10;
+            dynamicCheckBox.Width = 150;
+            dynamicCheckBox.Height = 15;
+            dynamicCheckBox.ForeColor = Color.Black;
+            dynamicCheckBox.Text = "I have no numpad :(";
+            dynamicCheckBox.Name = "DynamicCheckBox";
+            dynamicCheckBox.Size = new Size(400, 30);
+            dynamicCheckBox.Font = new Font("Consolas", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
+            dynamicCheckBox.Padding = new Padding(80, 12, 6, 2);
+            dynamicCheckBox.CheckedChanged += DynamicCheckBox_update;
+            
             // 
             // linkLabel1
             // 
@@ -65,12 +82,13 @@
             tableLayoutPanel1.ColumnCount = 1;
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.Controls.Add(label1, 0, 0);
-            tableLayoutPanel1.Controls.Add(linkLabel1, 0, 1);
+            tableLayoutPanel1.Controls.Add(dynamicCheckBox, 0, 1);
+            tableLayoutPanel1.Controls.Add(linkLabel1, 0, 2);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.Margin = new Padding(0);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.Padding = new Padding(6, 12, 6, 12);
+            tableLayoutPanel1.Padding = new Padding(6, 12, 6, 14);
             tableLayoutPanel1.RowCount = 2;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle());
@@ -101,6 +119,8 @@
 
         private Label label1;
         private LinkLabel linkLabel1;
+
+        private CheckBox dynamicCheckBox;
         private TableLayoutPanel tableLayoutPanel1;
     }
 }
