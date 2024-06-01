@@ -1,8 +1,5 @@
-using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using System.Windows.Input;
 using src.Classes;
 
 
@@ -10,7 +7,7 @@ namespace src
 {
     public partial class InfoForm : Form
     {
-
+       
         public InfoForm()
         {
             InitializeComponent();
@@ -22,27 +19,19 @@ namespace src
             }
             DesktopManager = (IVirtualDesktopManagerInternal)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, Guids.IID_IVirtualDesktopManagerInternal);
 
-
             RegisterHotKeysForNumpad();
 
         }
 
-        
-        
-        
-
         //Imports
         [DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
-
-
-
+        
         [DllImport("user32.dll")]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         private IVirtualDesktopManagerInternal DesktopManager;
-
-
+        
         //Constants
         enum KeyModifier
         {
@@ -92,11 +81,12 @@ namespace src
             RegisterHotKey(this.Handle, 7, hotkeyModifiers, Keys.F7.GetHashCode());
             RegisterHotKey(this.Handle, 8, hotkeyModifiers, Keys.F8.GetHashCode());
         }
-        
+
         private void DynamicCheckBox_update(object sender, EventArgs e)
         {
             if (dynamicCheckBox.Checked)
             {
+                hasNumpad = false;
                 UnregisterHotKeys();
                 RegisterHotKeysForNonNumpad();
                 Debug.WriteLine(hasNumpad);
@@ -104,34 +94,48 @@ namespace src
             }
             else
             {
+                hasNumpad = true;
                 UnregisterHotKeys();
                 RegisterHotKeysForNumpad();
                 Debug.WriteLine(hasNumpad);
                 Debug.WriteLine("UnregisterHotKey for nonnumpad");
             }
         }
-        
-
-
 
         private void InfoForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            //Unregistering hotkeys
-            for (int i = 0; i < 10; i++)
+            try
             {
-                UnregisterHotKey(this.Handle, i);
+                //Unregistering hotkeys
+                for (int i = 0; i < 10; i++)
+                {
+                    UnregisterHotKey(this.Handle, i);
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to unregister hotkeys: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
         }
 
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == WM_HOTKEY)
+            try
             {
-                int hotkeyId = m.WParam.ToInt32();
-                GoToDesktop(hotkeyId);
-                Debug.WriteLine(hotkeyId);
+                if (m.Msg == WM_HOTKEY)
+                {
+                    int hotkeyId = m.WParam.ToInt32();
+                    GoToDesktop(hotkeyId);
+                    Debug.WriteLine(hotkeyId);
+                }
+                base.WndProc(ref m);
             }
-            base.WndProc(ref m);
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occured: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
         }
 
 
@@ -144,29 +148,36 @@ namespace src
 
         private void GoToDesktop(int desktopNumber)
         {
-            var count = DesktopManager.GetCount();
-            if (desktopNumber < 0)
+            try
             {
-                desktopNumber = 0;
+                var count = DesktopManager.GetCount();
+                if (desktopNumber < 0)
+                {
+                    desktopNumber = 0;
+                }
+                else if (desktopNumber >= count)
+                {
+                    desktopNumber = count - 1;
+                }
+
+                Debug.WriteLine("Switching to desktop " + desktopNumber.ToString());
+
+                // Get desktop
+                IObjectArray allDesktops;
+                DesktopManager.GetDesktops(out allDesktops);
+                IVirtualDesktop targetDesktop;
+                allDesktops.GetAt(desktopNumber, Guids.IID_IVirtualDesktop, out targetDesktop);
+
+                // Switch to desktop
+                DesktopManager.SwitchDesktop(targetDesktop);
+
+                // Release COM objects
+                Marshal.ReleaseComObject(allDesktops);
             }
-            else if (desktopNumber >= count)
+            catch (Exception ex)
             {
-                desktopNumber = count - 1;
+                MessageBox.Show("Failed to go to Desktop" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
-            Debug.WriteLine("Switching to desktop " + desktopNumber.ToString());
-
-            // Get desktop
-            IObjectArray allDesktops;
-            DesktopManager.GetDesktops(out allDesktops);
-            IVirtualDesktop targetDesktop;
-            allDesktops.GetAt(desktopNumber, Guids.IID_IVirtualDesktop, out targetDesktop);
-
-            // Switch to desktop
-            DesktopManager.SwitchDesktop(targetDesktop);
-
-            // Release COM objects
-            Marshal.ReleaseComObject(allDesktops);
         }
     }
 }
