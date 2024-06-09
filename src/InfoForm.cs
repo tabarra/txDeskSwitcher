@@ -2,15 +2,21 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using src.Classes;
 
-
 namespace src
 {
+    
     public partial class InfoForm : Form
     {
-       
+        private System.Windows.Forms.Timer _timer;
         public InfoForm()
         {
+            
             InitializeComponent();
+            // Create tick that checks for explorer
+            _timer = new System.Windows.Forms.Timer();
+            _timer.Interval = 10;
+            _timer.Tick += CheckAndRestart_Tick;
+            _timer.Start();
 
             var shell = Activator.CreateInstance(Type.GetTypeFromCLSID(Guids.CLSID_ImmersiveShell)) as IServiceProvider10;
             if (shell == null)
@@ -19,19 +25,45 @@ namespace src
             }
             DesktopManager = (IVirtualDesktopManagerInternal)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, Guids.IID_IVirtualDesktopManagerInternal);
 
-            RegisterHotKeysForNumpad();
 
+            RegisterHotKeysForNumpad();
+            
         }
+         private void CheckAndRestart_Tick(object sender, EventArgs e)
+    {
+        // Get explorer process name
+        Process[] Processes = Process.GetProcessesByName("explorer");
+        // Check if explorer is running, if not start it
+        if (Processes.Length == 0)
+        {
+            string ExplorerShell = string.Format("{0}\\{1}", Environment.GetEnvironmentVariable("WINDIR"), "explorer.exe");
+            System.Diagnostics.Process prcExplorerShell = new System.Diagnostics.Process();
+            prcExplorerShell.StartInfo.FileName = ExplorerShell;
+            prcExplorerShell.StartInfo.UseShellExecute = true;
+            prcExplorerShell.Start();
+
+            MessageBox.Show("txDeskSwitcher had to restart. Explorer (most likely) crashed", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            // Restart the app.
+            Application.Restart();
+        }
+    }
+
+        
+
+        bool hasNumpad = true;
 
         //Imports
         [DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
-        
+
+
+
         [DllImport("user32.dll")]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         private IVirtualDesktopManagerInternal DesktopManager;
-        
+
+
         //Constants
         enum KeyModifier
         {
@@ -52,7 +84,7 @@ namespace src
                 UnregisterHotKey(this.Handle, i);
             }
         }
-
+        
         private void RegisterHotKeysForNumpad()
         {
             int hotkeyModifiers = (int)KeyModifier.Control | (int)KeyModifier.WinKey;
@@ -102,6 +134,9 @@ namespace src
             }
         }
 
+
+        
+
         private void InfoForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             try
@@ -134,6 +169,7 @@ namespace src
             catch (Exception ex)
             {
                 MessageBox.Show("An error occured: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Debug.WriteLine(ex);
             }
 
         }
@@ -148,8 +184,10 @@ namespace src
 
         private void GoToDesktop(int desktopNumber)
         {
+            
             try
             {
+
                 var count = DesktopManager.GetCount();
                 if (desktopNumber < 0)
                 {
