@@ -8,15 +8,59 @@ namespace src
 {
     public partial class InfoForm : Form
     {
+        private System.Windows.Forms.Timer _timer;
+        public InfoForm()
+        {
+
+            InitializeComponent();
+
+            _timer = new System.Windows.Forms.Timer();
+            _timer.Interval = 10;
+            _timer.Tick += CheckAndRestart_Tick;
+            _timer.Start();
+
+            var shell = Activator.CreateInstance(Type.GetTypeFromCLSID(Guids.CLSID_ImmersiveShell)) as IServiceProvider10;
+            if (shell == null)
+            {
+                throw new Exception("Could not get type from CLSID");
+            }
+            DesktopManager = (IVirtualDesktopManagerInternal)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, Guids.IID_IVirtualDesktopManagerInternal);
+
+
+            RegisterHotKeysForNumpad();
+
+        }
+        private void CheckAndRestart_Tick(object sender, EventArgs e)
+        {
+            Process[] Processes = Process.GetProcessesByName("explorer");
+            if (Processes.Length == 0)
+            {
+                string ExplorerShell = string.Format("{0}\\{1}", Environment.GetEnvironmentVariable("WINDIR"), "explorer.exe");
+                System.Diagnostics.Process prcExplorerShell = new System.Diagnostics.Process();
+                prcExplorerShell.StartInfo.FileName = ExplorerShell;
+                prcExplorerShell.StartInfo.UseShellExecute = true;
+                prcExplorerShell.Start();
+
+                MessageBox.Show("txDeskSwitcher had to restart. Explorer (most likely) crashed", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                Application.Restart();
+            }
+        }
+
+
+
+        bool hasNumpad = true;
+
         //Imports
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
 
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
+
+
+        [DllImport("user32.dll")]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         private IVirtualDesktopManagerInternal DesktopManager;
-
 
 
         //Constants
@@ -32,30 +76,41 @@ namespace src
 
         static readonly int WM_HOTKEY = 0x312;
 
-        public InfoForm()
+        private void UnregisterHotKeys()
         {
-            InitializeComponent();
-
-            var shell = Activator.CreateInstance(Type.GetTypeFromCLSID(Guids.CLSID_ImmersiveShell)) as IServiceProvider10;
-            if (shell == null)
+            for (int i = 0; i < 9; i++)
             {
-                throw new Exception("Could not get type from CLSID");
+                UnregisterHotKey(this.Handle, i);
             }
-            DesktopManager = (IVirtualDesktopManagerInternal)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, Guids.IID_IVirtualDesktopManagerInternal);
+        }
 
+        private void RegisterHotKeysForNumpad()
+        {
+            int hotkeyModifiers = (int)KeyModifier.Control | (int)KeyModifier.WinKey;
 
-            //Registering hotkeys
-            int hotkeyMoidifiers = (int)(KeyModifier.Control) | (int)(KeyModifier.WinKey);
-            RegisterHotKey(this.Handle, 0, hotkeyMoidifiers, Keys.NumPad0.GetHashCode());
-            RegisterHotKey(this.Handle, 1, hotkeyMoidifiers, Keys.NumPad1.GetHashCode());
-            RegisterHotKey(this.Handle, 2, hotkeyMoidifiers, Keys.NumPad2.GetHashCode());
-            RegisterHotKey(this.Handle, 3, hotkeyMoidifiers, Keys.NumPad3.GetHashCode());
-            RegisterHotKey(this.Handle, 4, hotkeyMoidifiers, Keys.NumPad4.GetHashCode());
-            RegisterHotKey(this.Handle, 5, hotkeyMoidifiers, Keys.NumPad5.GetHashCode());
-            RegisterHotKey(this.Handle, 6, hotkeyMoidifiers, Keys.NumPad6.GetHashCode());
-            RegisterHotKey(this.Handle, 7, hotkeyMoidifiers, Keys.NumPad7.GetHashCode());
-            RegisterHotKey(this.Handle, 8, hotkeyMoidifiers, Keys.NumPad8.GetHashCode());
-            RegisterHotKey(this.Handle, 9, hotkeyMoidifiers, Keys.NumPad9.GetHashCode());
+            RegisterHotKey(this.Handle, 0, hotkeyModifiers, Keys.NumPad0.GetHashCode());
+            RegisterHotKey(this.Handle, 1, hotkeyModifiers, Keys.NumPad1.GetHashCode());
+            RegisterHotKey(this.Handle, 2, hotkeyModifiers, Keys.NumPad2.GetHashCode());
+            RegisterHotKey(this.Handle, 3, hotkeyModifiers, Keys.NumPad3.GetHashCode());
+            RegisterHotKey(this.Handle, 4, hotkeyModifiers, Keys.NumPad4.GetHashCode());
+            RegisterHotKey(this.Handle, 5, hotkeyModifiers, Keys.NumPad5.GetHashCode());
+            RegisterHotKey(this.Handle, 6, hotkeyModifiers, Keys.NumPad6.GetHashCode());
+            RegisterHotKey(this.Handle, 7, hotkeyModifiers, Keys.NumPad7.GetHashCode());
+            RegisterHotKey(this.Handle, 8, hotkeyModifiers, Keys.NumPad8.GetHashCode());
+        }
+        private void RegisterHotKeysForNonNumpad()
+        {
+            int hotkeyModifiers = (int)KeyModifier.Control | (int)KeyModifier.WinKey;
+
+            RegisterHotKey(this.Handle, 0, hotkeyModifiers, Keys.Escape.GetHashCode());
+            RegisterHotKey(this.Handle, 1, hotkeyModifiers, Keys.F1.GetHashCode());
+            RegisterHotKey(this.Handle, 2, hotkeyModifiers, Keys.F2.GetHashCode());
+            RegisterHotKey(this.Handle, 3, hotkeyModifiers, Keys.F3.GetHashCode());
+            RegisterHotKey(this.Handle, 4, hotkeyModifiers, Keys.F4.GetHashCode());
+            RegisterHotKey(this.Handle, 5, hotkeyModifiers, Keys.F5.GetHashCode());
+            RegisterHotKey(this.Handle, 6, hotkeyModifiers, Keys.F6.GetHashCode());
+            RegisterHotKey(this.Handle, 7, hotkeyModifiers, Keys.F7.GetHashCode());
+            RegisterHotKey(this.Handle, 8, hotkeyModifiers, Keys.F8.GetHashCode());
         }
 
 
